@@ -1,0 +1,12 @@
+# /opt/llama-swap/dpcker-compose.yaml
+
+services:
+  llama-swap:
+    image: ghcr.io/mostlygeek/llama-swap:v199-rocm-b8562
+    network_mode: host
+    privileged: true
+    volumes:
+      - /etc/llama-swap/config.yaml:/app/config.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: ["-config", "/app/config.yaml", "-watch-config"]
+    restart: unless-stopped

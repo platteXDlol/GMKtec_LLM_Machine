@@ -1,0 +1,158 @@
+# /etc/llama-swap/config.yaml
+port: 8080
+ttl: 300
+healthCheckTimeout: 600
+
+groups:
+  main:
+    simultaneous: false
+    ttl: 600
+    models:
+      - hlc-turbo-6.7      # Alfred (schnell)   ~18.6 GB
+      - hlc-thinker        # Alfred (denkt)      ~22 GB
+      - devstral           # Coding Agent        ~14 GB
+      - qwen3-coder        # Coding Planner      ~18.6 GB
+      - hlc-roleplay-1.8   # Roleplay             ~8 GB
+      - hlc-mini-3.1       # Mini                 ~5 GB
+
+models:
+  # everdy work, normal Chat
+  hlc-turbo-6.7:
+    cmd: docker run --rm
+      --device /dev/kfd
+      --device /dev/dri
+      --group-add 44
+      --group-add 992
+      -v /opt/models/alfred:/models:ro
+      -p 8081:8081
+      -e HSA_ENABLE_SDMA=0
+      kyuz0/amd-strix-halo-toolboxes:rocm-7.2
+      llama-server
+      --model /models/Qwen3-30B-A3B-Instruct-2507-Q4_K_M.gguf
+      --port 8081
+      --host 0.0.0.0
+      --n-gpu-layers 99
+      --ctx-size 131072
+      --parallel 2
+      --no-mmap
+      --flash-attn auto
+      --chat-template-kwargs '{"enable_thinking":false}'
+    port: 8081
+    proxy: http://127.0.0.1:8081
+
+  # everday with thinking
+  hlc-thinker:
+    cmd: docker run --rm
+      --device /dev/kfd
+      --device /dev/dri
+      --group-add 44
+      --group-add 992
+      -v /opt/models/alfred:/models:ro
+      -p 8083:8083
+      -e HSA_ENABLE_SDMA=0
+      kyuz0/amd-strix-halo-toolboxes:rocm-7.2
+      llama-server
+      --model /models/Qwen3.5-35B-A3B-UD-Q4_K_XL.gguf
+      --port 8083
+      --host 0.0.0.0
+      --n-gpu-layers 99
+      --ctx-size 65536
+      --parallel 2
+      --no-mmap
+      --flash-attn auto
+    port: 8083
+    proxy: http://127.0.0.1:8083
+
+  # Coding Agent
+  devstral:
+    cmd: docker run --rm
+      --device /dev/kfd
+      --device /dev/dri
+      --group-add 44
+      --group-add 992
+      -v /opt/models/coding:/models:ro
+      -p 8082:8082
+      -e HSA_ENABLE_SDMA=0
+      kyuz0/amd-strix-halo-toolboxes:rocm-7.2
+      llama-server
+      --model /models/mistralai_Devstral-Small-2505-Q4_K_M.gguf
+      --port 8082
+      --host 0.0.0.0
+      --n-gpu-layers 99
+      --ctx-size 131072
+      --parallel 2
+      --no-mmap
+      --flash-attn auto
+      --jinja
+      --chat-template-file /models/devstral-template.jinja
+    port: 8082
+    proxy: http://127.0.0.1:8082
+
+  # Code Planner
+  qwen3-coder:
+    cmd: docker run --rm
+      --device /dev/kfd
+      --device /dev/dri
+      --group-add 44
+      --group-add 992
+      -v /opt/models/coding:/models:ro
+      -p 8091:8091
+      -e HSA_ENABLE_SDMA=0
+      kyuz0/amd-strix-halo-toolboxes:rocm-7.2
+      llama-server
+      --model /models/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf
+      --port 8091
+      --host 0.0.0.0
+      --n-gpu-layers 99
+      --ctx-size 131072
+      --parallel 2
+      --no-mmap
+      --flash-attn auto
+    port: 8091
+    proxy: http://127.0.0.1:8091
+
+  # Roleplay
+  hlc-roleplay-1.8:
+    cmd: docker run --rm
+      --device /dev/kfd
+      --device /dev/dri
+      --group-add 44
+      --group-add 992
+      -v /opt/models/roleplay:/models:ro
+      -p 8096:8096
+      -e HSA_ENABLE_SDMA=0
+      kyuz0/amd-strix-halo-toolboxes:rocm-7.2
+      llama-server
+      --model /models/Mistral-Nemo-Instruct-2407-Q4_K_M.gguf
+      --port 8096
+      --host 0.0.0.0
+      --n-gpu-layers 99
+      --ctx-size 32768
+      --parallel 2
+      --no-mmap
+      --flash-attn auto
+    port: 8085
+    proxy: http://127.0.0.1:8096
+
+  # Fast (for easy questions and fast answers)
+  hlc-mini-3.1:
+    cmd: docker run --rm
+      --device /dev/kfd
+      --device /dev/dri
+      --group-add 44
+      --group-add 992
+      -v /opt/models/speedtest:/models:ro
+      -p 8084:8084
+      -e HSA_ENABLE_SDMA=0
+      kyuz0/amd-strix-halo-toolboxes:rocm-7.2
+      llama-server
+      --model /models/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf
+      --port 8084
+      --host 0.0.0.0
+      --n-gpu-layers 99
+      --ctx-size 32768
+      --parallel 2
+      --no-mmap
+      --flash-attn auto
+    port: 8084
+    proxy: http://127.0.0.1:8084

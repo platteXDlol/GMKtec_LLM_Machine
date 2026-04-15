@@ -1,0 +1,32 @@
+# /opt/ComfyUI/docker-compose.yaml
+services:
+  comfyui:
+    image: ignatberesnev/comfyui-gfx1151:v0.2
+    container_name: comfyui
+    restart: unless-stopped
+    ports:
+      - "8188:8188"
+    devices:
+      - /dev/dri:/dev/dri
+      - /dev/kfd:/dev/kfd
+    group_add:
+      - video
+      - render
+    security_opt:
+      - seccomp=unconfined
+    shm_size: 8g
+    environment:
+      - HSA_OVERRIDE_GFX_VERSION=11.5.1
+      - HSA_ENABLE_SDMA=0
+      - HIP_VISIBLE_DEVICES=0
+      - FLASH_ATTENTION_TRITON_AMD_ENABLE=TRUE
+    volumes:
+      - ./ComfyUI:/opt/ComfyUI
+      - ./output:/opt/ComfyUI/output
+    command: >
+      /bin/sh -c '/opt/comfyui-gfx1151-utils/check-comfyui.sh &&
+      python3 /opt/ComfyUI/main.py
+      --listen 0.0.0.0
+      --use-flash-attention
+      --disable-mmap
+      --bf16-vae'
